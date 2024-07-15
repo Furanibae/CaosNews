@@ -2,14 +2,14 @@
     "version": 2,
     "builds": [
       {
-        "src": "CaosNews2.0/Caosnews/wsgi.py",
+        "src": "CaosNews/wsgi.py",
         "use": "@vercel/python"
       }
     ],
     "routes": [
       {
         "src": "/(.*)",
-        "dest": "CaosNews2.0/Caosnews/wsgi.py"
+        "dest": "CaosNews/wsgi.py"
       }
     ]
   }
