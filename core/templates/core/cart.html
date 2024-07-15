@@ -1,0 +1,167 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block contenido %}
+
+<section class="h-100 h-custom" style="background-color: #eee;">
+  <div class="container py-5 h-100">
+    
+    <div class="row d-flex justify-content-center align-items-center h-100">
+      <div class="col">
+        <div class="card bg-dark">
+          <div class="card-body p-4">
+            <div class="row">
+              <div class="col-lg-7">
+                <h5 class="mb-3"><a href="{% url 'index' %}" class="text-body text-warning"><i class="fas fa-long-arrow-alt-left me-2"></i>Volver</a></h5>
+                <hr>
+
+                <h2 class="text-warning">Tu carrito de compras</h2>
+                <hr class="pb-3">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                  <div>
+                    <p class="mb-0 text-warning">Tienes {{ cart_items.count }} artículos en tu carrito</p>
+                  </div>
+                </div>
+
+                {% if cart_items %}
+                  {% for item in cart_items %}
+                    <div class="card mb-3 bg-warning">
+                      <div class="card-body text-dark">
+                        <div class="d-flex justify-content-between">
+                          <div class="d-flex flex-row align-items-center">
+                            <div class="ms-3">
+                              <h5>{{ item.subscription.name }}</h5>
+                              <p class="small mb-0">{{ item.subscription.description }}</p>
+                            </div>
+                          </div>
+                          <div class="d-flex flex-row align-items-center">
+                            <form action="{% url 'update_cart_item' item_id=item.id %}" method="POST">
+                              {% csrf_token %}
+                              <button type="submit" name="action" value="remove" class="btn btn-sm btn-outline-dark">-</button>
+                            </form>
+                            <div style="width: 50px;">
+                              <h5 class="fw-normal mb-0 ml-4">{{ item.quantity }}</h5>
+                            </div>
+                            <form action="{% url 'update_cart_item' item_id=item.id %}" method="POST">
+                              {% csrf_token %}
+                              <button type="submit" name="action" value="add" class="btn btn-sm btn-outline-dark">+</button>
+                            </form>
+                            <div style="width: 80px;">
+                              <h5 class="mb-0 ml-4">${{ item.subscription.price }}</h5>
+                            </div>
+                            <a href="{% url 'remove_from_cart' item_id=item.id %}" style="color: #000000;">
+                              <i class="fas fa-trash-alt"></i>
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  {% endfor %}
+                {% else %}
+                  <p class="text-white">No tienes artículos en tu carrito.</p>
+                {% endif %}
+
+              </div>
+              <div class="col-lg-5">
+
+                <div class="card bg-warning text-white rounded-3">
+                  <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                      <h5 class="mb-0 text-dark">Detalle de compra</h5>
+                    </div>
+
+                    <p class="small mb-2 text-dark">Tipo de tarjeta</p>
+                    <a href="#!" type="submit" class="text-dark">
+                      <i class="fab fa-cc-paypal fa-2x"></i>
+                    </a>
+
+                    <hr class="my-4">
+
+                    <div class="d-flex justify-content-between text-dark">
+                      <p class="mb-2">Subtotal</p>
+                      <p class="mb-2">${{ subtotal }}</p>
+                    </div>
+                    <div class="d-flex justify-content-between mb-4 text-dark">
+                      <p class="mb-2">Descuentos</p>
+                      <p class="mb-2">${{ descuentos }}</p>
+                    </div>
+                    <div class="d-flex justify-content-between mb-4 text-dark">
+                      <p class="mb-2">Total</p>
+                      <p class="mb-2">${{ total }}</p>
+                    </div>
+                    <div class="text-center" id="paypal-button">
+                  </div>
+                    
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<script src="https://www.paypalobjects.com/api/checkout.js"></script>
+<script>
+  
+  paypal.Button.render({
+    env: 'sandbox',
+    client: {
+      sandbox: 'AV2eZnyroK1RfziS24uaiF8M2rHVZjfRcu63HWqZeclbf_sDmJDfPNrLID2z6h9FA6zvMqmozJw4Ir3y',
+      production: 'demo_production_client_id'
+    },
+    locale: 'en_US',
+    style: {
+      size: 'medium',
+      color: 'black',
+      shape: 'rect',
+      tagline: 'false',
+    },
+    commit: true,
+    payment: function(data, actions) {
+      return actions.payment.create({
+        transactions: [{
+          amount: {
+            total: '{{ total }}',
+            currency: 'USD'
+          }
+        }]
+      });
+    },
+    onAuthorize: function(data, actions) {
+      return actions.payment.execute().then(function() {
+        // Aquí haces la llamada AJAX a tu servidor para completar la compra
+        fetch('{% url "complete_purchase" %}', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+          },
+          body: JSON.stringify({
+            paymentID: data.paymentID,
+            payerID: data.payerID
+          })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === 'success') {
+            window.alert('¡Gracias por su compra!');
+            window.location.href = '{% url 'historial_de_compras' %}';
+          } else {
+            window.alert('Hubo un problema al completar la compra. Por favor, intenta de nuevo.');
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          window.alert('Hubo un problema al completar la compra. Por favor, intenta de nuevo.');
+        });
+      });
+    }
+  }, '#paypal-button');
+</script>
+
+{% endblock %}

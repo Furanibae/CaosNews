@@ -1,0 +1,64 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Boleta - Suscripción CAOS NEWS</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .invoice-container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+        }
+        .invoice-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .invoice-items {
+            margin-top: 20px;
+        }
+        .item {
+            margin-bottom: 10px;
+        }
+        .item-name {
+            font-weight: bold;
+        }
+        .item-price {
+            float: right;
+        }
+        .invoice-total {
+            margin-top: 20px;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice-container">
+        <div class="invoice-header">
+            <h1>Boleta de compra</h1>
+            <p>Suscripción CAOS NEWS</p>
+            <p>Orden ID: {{ order.id }}</p>
+        </div>
+        <div class="invoice-items">
+            {% for item in purchase_items %}
+            <div class="item">
+                <span class="item-name">{{ item.subscription.name }}</span>
+                <span class="item-price">${{ item.subscription.price }}</span>
+                <span class="item-quantity">x{{ item.quantity }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="invoice-total">
+            <p><strong>Subtotal:</strong> ${{ subtotal }}</p>
+            <p><strong>Descuentos:</strong> ${{ descuentos }}</p>
+            <p><strong>Total:</strong> ${{ total }}</p>
+        </div>
+    </div>
+</body>
+</html>
+

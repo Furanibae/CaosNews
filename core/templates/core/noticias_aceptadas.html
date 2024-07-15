@@ -1,0 +1,53 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block contenido %}
+
+<div class="container pt-5 mb-5">
+  <div class="row">
+    <div class="col">
+      <h1>Noticias Destacadas</h1>
+      <hr class="mb-5">
+    </div>
+  </div>
+
+  <div class="row">
+    {% for noticia in noticias %}
+      <div class="col-md-6 mb-4">
+        <div class="card h-100">
+          <div class="card-body">
+            <img src="{{ noticia.imagen.url }}" class="card-img-top" alt="Imagen de la noticia">
+            <h5 class="card-title">{{ noticia.titular }}</h5>
+            <h6 class="card-subtitle mb-2 text-muted">Por: {{ noticia.nombre_redactor }}</h6>
+            <p class="card-text">{{ noticia.subtitulo }}</p>
+            <p class="card-text">{{ noticia.cuerpo }}</p>
+            <a href="{% url 'detalle' %}" class="btn btn-primary">Ver Detalle</a>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+  
+  {% if noticias.has_other_pages %}
+    <div class="pagination mt-4 mb-4 text-center justify-content-center">
+      <span class="step-links">
+        {% if noticias.has_previous %}
+          <a href="?page=1">&laquo; Primera</a>
+          <a href="?page={{ noticias.previous_page_number }}">Anterior</a>
+        {% endif %}
+
+        <span class="current">
+          Página {{ noticias.number }} de {{ noticias.paginator.num_pages }}.
+        </span>
+
+        {% if noticias.has_next %}
+          <a href="?page={{ noticias.next_page_number }}">Siguiente</a>
+          <a href="?page={{ noticias.paginator.num_pages }}">Última &raquo;</a>
+        {% endif %}
+      </span>
+    </div>
+  {% endif %}
+
+</div>
+
+{% endblock %}
